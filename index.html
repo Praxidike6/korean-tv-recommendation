@@ -1,0 +1,2205 @@
+<!doctype html>
+<html
+  lang="en"
+  class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Korean & International Media Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#8b5cf6',
+              secondary: '#ec4899',
+              accent: '#06b6d4',
+              darkbg: '#0f172a',
+              cardbg: '#1e293b',
+            },
+          },
+        },
+      };
+    </script>
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Outfit', sans-serif;
+      }
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .gradient-text {
+        background: linear-gradient(
+          135deg,
+          #a78bfa 0%,
+          #f472b6 50%,
+          #38bdf8 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      input[type='checkbox'] {
+        accent-color: #ec4899;
+        width: 1.15rem;
+        height: 1.15rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-darkbg text-slate-100 min-h-screen selection:bg-pink-500 selection:text-white pb-20">
+    <!-- Header Hero Section -->
+    <header
+      class="relative overflow-hidden py-12 px-6 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 shadow-2xl">
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(236,72,153,0.1),transparent_50%)]"></div>
+      <div
+        class="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <span
+            class="px-3 py-1 text-xs font-semibold uppercase tracking-widest bg-pink-500/20 text-pink-400 rounded-full border border-pink-500/30">
+            <i class="fa-solid fa-cloud-arrow-up mr-1"></i>
+            Public Media Dashboard
+          </span>
+          <h1 class="text-4xl md:text-5xl font-extrabold mt-3 tracking-tight">
+            Korean &
+            <span class="gradient-text">Global Watchlist</span>
+          </h1>
+          <p class="text-slate-400 mt-2 text-sm md:text-base max-w-xl">
+            Grouped by genre, ordered by year. Add your own titles, track
+            watch/download status, and export backups anytime.
+          </p>
+          <div class="flex flex-wrap items-center gap-3 mt-4">
+            <button
+              onclick="openAddModal()"
+              class="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-xs font-bold text-white shadow-lg shadow-pink-500/25 transition">
+              <i class="fa-solid fa-plus mr-1.5"></i>
+              Add New Media
+            </button>
+            <button
+              onclick="exportData()"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">
+              <i class="fa-solid fa-file-arrow-down mr-1 text-pink-400"></i>
+              Export Backup
+            </button>
+            <label
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition cursor-pointer">
+              <i class="fa-solid fa-file-arrow-up mr-1 text-cyan-400"></i>
+              Import Backup
+              <input
+                type="file"
+                id="import-file"
+                class="hidden"
+                accept=".json"
+                onchange="importData(event)" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Overall Progress Widget -->
+        <div
+          class="glass-panel p-5 rounded-2xl w-full md:w-80 shadow-xl border border-slate-700/60">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-semibold text-slate-300">
+              <i class="fa-solid fa-chart-pie text-pink-400 mr-2"></i>
+              Watch Progress
+            </span>
+            <span
+              id="progress-text"
+              class="text-xs font-bold text-pink-400 bg-pink-500/10 px-2.5 py-1 rounded-full">
+              0%
+            </span>
+          </div>
+          <div
+            class="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div
+              id="progress-bar"
+              class="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 h-full rounded-full transition-all duration-500"
+              style="width: 0%"></div>
+          </div>
+          <div
+            class="flex justify-between items-center mt-3 text-xs text-slate-400">
+            <span id="watched-count">0 Watched</span>
+            <span id="downloaded-count">0 Downloaded</span>
+            <span id="total-count">0 Total</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <!-- Controls & Navigation Tabs -->
+      <div
+        class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        <div
+          id="tabs-container"
+          class="flex flex-wrap gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-lg"></div>
+
+        <div class="relative w-full md:w-72">
+          <span
+            class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search title, genre, year..."
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 text-slate-200 placeholder-slate-500 transition-all shadow-inner" />
+        </div>
+      </div>
+
+      <div id="content-area">
+        <div class="text-center py-20">
+          <i
+            class="fa-solid fa-circle-notch fa-spin text-4xl text-pink-500"></i>
+          <p class="text-slate-400 mt-4">Loading your media library...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add Media Modal -->
+    <div
+      id="add-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden p-4">
+      <div
+        class="glass-panel w-full max-w-lg p-6 rounded-3xl border border-slate-700 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <div
+          class="flex justify-between items-center mb-5 pb-3 border-b border-slate-700">
+          <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus text-pink-500"></i>
+            Add New Media Item
+          </h3>
+          <button
+            onclick="closeAddModal()"
+            class="text-slate-400 hover:text-slate-200 transition text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form
+          id="add-form"
+          onsubmit="handleAddItem(event)"
+          class="space-y-4">
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Category / Tab
+            </label>
+            <select
+              id="add-category"
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500">
+              <option value="TV">TV</option>
+              <option value="Movies">Movies</option>
+              <option value="Docos">Docos</option>
+              <option value="English TV">English TV</option>
+              <option value="Books">Books</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Title / Name *
+            </label>
+            <input
+              type="text"
+              id="add-name"
+              required
+              placeholder="e.g. Stranger Things"
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Genre *
+              </label>
+              <input
+                type="text"
+                id="add-genre"
+                required
+                placeholder="e.g. Thriller, Sci-Fi"
+                class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Release Year
+              </label>
+              <input
+                type="number"
+                id="add-year"
+                placeholder="e.g. 2026"
+                class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                IMDb Rating
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                max="10"
+                id="add-imdb"
+                placeholder="e.g. 8.2"
+                class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Seasons (Opt)
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                id="add-seasons"
+                placeholder="e.g. 1"
+                class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Episodes (Opt)
+              </label>
+              <input
+                type="number"
+                id="add-episodes"
+                placeholder="e.g. 12"
+                class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+            </div>
+          </div>
+
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Author (For Books Only)
+            </label>
+            <input
+              type="text"
+              id="add-author"
+              placeholder="e.g. Han Kang"
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-pink-500" />
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-700">
+            <button
+              type="button"
+              onclick="closeAddModal()"
+              class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-xs font-bold text-white shadow-lg shadow-pink-500/25 transition">
+              Save Item
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JavaScript Data and Renderer -->
+    <script>
+      const defaultData = {
+        TV: [
+          {
+            Name: '100 Days of deception',
+            Year: 2026,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: '365: Repeat the year',
+            Year: 2020,
+            S: 1.0,
+            E: 24.0,
+            IMDB: 7.9,
+            WDWT: 'Good',
+            Genre: 'Sci Fi',
+          },
+          {
+            Name: 'A bloody lucky day',
+            Year: 2023,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 7.5,
+            WDWT: 'Excellent',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'A Killer Paradox',
+            Year: 2024,
+            S: 1.0,
+            E: 8.0,
+            IMDB: 7.2,
+            WDWT: 'Excellent',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'A model family',
+            Year: 2022,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 6.6,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'A piece of your mind',
+            Year: 2020,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.3,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'A squires business',
+            Year: 2025,
+            S: 1.0,
+            E: 6.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Historical',
+          },
+          {
+            Name: 'A time called you',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.8,
+            WDWT: 'Loved',
+            Genre: 'Romance/Sci Fi',
+          },
+          {
+            Name: 'Adamas',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.1,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Agency',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Workplace',
+          },
+          {
+            Name: 'Alchemy of souls',
+            Year: 2022,
+            S: 2.0,
+            E: 30.0,
+            IMDB: 8.8,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'All of us are dead',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.5,
+            WDWT: 'Good',
+            Genre: 'Horror',
+          },
+          {
+            Name: 'An incurable case of love',
+            Year: 2020,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 7.5,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Apocalypse of the fools',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Sci Fi',
+          },
+          {
+            Name: 'Arthdal Chronicles',
+            Year: 2019,
+            S: 2.0,
+            E: 30.0,
+            IMDB: 8.3,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Ashin of the North',
+            Year: 2021,
+            S: 1.0,
+            E: 1.0,
+            IMDB: 7.0,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'At a distance spring is green',
+            Year: 2021,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.3,
+            WDWT: null,
+            Genre: 'Youth',
+          },
+          {
+            Name: 'Bad and crazy',
+            Year: 2021,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.1,
+            WDWT: 'Good',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Bad prosecutor',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.3,
+            WDWT: 'Good',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Be melodramatic',
+            Year: 2019,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Comedy',
+          },
+          {
+            Name: 'Black',
+            Year: 2017,
+            S: 1.0,
+            E: 18.0,
+            IMDB: 7.9,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Bloodhounds',
+            Year: 2023,
+            S: 1.0,
+            E: 8.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Bossam: Steal the Fate',
+            Year: 2021,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Historical',
+          },
+          {
+            Name: 'Boys over flowers',
+            Year: 2009,
+            S: 1.0,
+            E: 25.0,
+            IMDB: 7.9,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Bargain',
+            Year: 2022,
+            S: 1.0,
+            E: 6.0,
+            IMDB: 7.0,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Bulgasal: Immortal Souls',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.5,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Business Proposal',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Call it love',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.9,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Celebrity',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.5,
+            WDWT: 'Good',
+            Genre: 'Drama',
+          },
+          {
+            Name: 'Chief Detective 1958',
+            Year: 2024,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 7.5,
+            WDWT: null,
+            Genre: 'Crime',
+          },
+          {
+            Name: 'Chronicles of Crime',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Crime',
+          },
+          {
+            Name: 'Clean with passion for now',
+            Year: 2018,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 6.9,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Crash course in romance',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Crash',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.0,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Connect',
+            Year: 2022,
+            S: 1.0,
+            E: 6.0,
+            IMDB: 6.9,
+            WDWT: null,
+            Genre: 'Sci Fi',
+          },
+          {
+            Name: 'D.P.',
+            Year: 2021,
+            S: 2.0,
+            E: 12.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Daily dose of sunshine',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Medical',
+          },
+          {
+            Name: 'Dear M',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.1,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Delayed Justice',
+            Year: 2020,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 7.5,
+            WDWT: null,
+            Genre: 'Law',
+          },
+          {
+            Name: 'Descendants of the sun',
+            Year: 2016,
+            S: 1.0,
+            E: 19.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Destined with you',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.3,
+            WDWT: 'Good',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Doctor Cha',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.5,
+            WDWT: 'Good',
+            Genre: 'Medical',
+          },
+          {
+            Name: 'Do do sol sol la la sol',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.3,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Do you like Brahms?',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Doom at your service',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Doubt',
+            Year: 2024,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 8.1,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Drama Special: Ordinary Goods',
+            Year: 2023,
+            S: 1.0,
+            E: 1.0,
+            IMDB: 6.8,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: 'Dynamic Family',
+            Year: 2024,
+            S: 1.0,
+            E: 10.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Comedy',
+          },
+          {
+            Name: 'Eulachacha Waikiki',
+            Year: 2018,
+            S: 2.0,
+            E: 36.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Comedy',
+          },
+          {
+            Name: 'Extraordinary Attorney Woo',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Law',
+          },
+          {
+            Name: 'Eve',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.1,
+            WDWT: null,
+            Genre: 'Melodrama',
+          },
+          {
+            Name: 'Family: The Unbreakable Bond',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 6.5,
+            WDWT: null,
+            Genre: 'Comedy',
+          },
+          {
+            Name: 'Fated to love you',
+            Year: 2014,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.0,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Find me in your memory',
+            Year: 2020,
+            S: 1.0,
+            E: 32.0,
+            IMDB: 7.9,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Flower of Evil',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Gaburi',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Gyeongseong Creature',
+            Year: 2023,
+            S: 2.0,
+            E: 17.0,
+            IMDB: 7.3,
+            WDWT: 'Good',
+            Genre: 'Historical/Sci Fi',
+          },
+          {
+            Name: 'Good Boy',
+            Year: 2025,
+            S: 1.0,
+            E: 16.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Good casting',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.2,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Grid',
+            Year: 2022,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 6.1,
+            WDWT: null,
+            Genre: 'Sci Fi',
+          },
+          {
+            Name: 'Gryphon',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Guardian: The Lonely and Great God',
+            Year: 2016,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Guns and Talks',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Happiness',
+            Year: 2021,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.9,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Healer',
+            Year: 2014,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.5,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Hellbound',
+            Year: 2021,
+            S: 2.0,
+            E: 12.0,
+            IMDB: 6.6,
+            WDWT: 'Good',
+            Genre: 'Horror',
+          },
+          {
+            Name: 'Hierarchy',
+            Year: 2024,
+            S: 1.0,
+            E: 7.0,
+            IMDB: 5.4,
+            WDWT: null,
+            Genre: 'Teen',
+          },
+          {
+            Name: 'Hometown Cha-Cha-Cha',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Hotel Del Luna',
+            Year: 2019,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Hospital playlist',
+            Year: 2020,
+            S: 2.0,
+            E: 24.0,
+            IMDB: 8.8,
+            WDWT: 'Loved',
+            Genre: 'Medical',
+          },
+          {
+            Name: 'Hwarang',
+            Year: 2016,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.0,
+            WDWT: null,
+            Genre: 'Historical',
+          },
+          {
+            Name: 'Hyena',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.8,
+            WDWT: null,
+            Genre: 'Law',
+          },
+          {
+            Name: 'Itaewon class',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Drama',
+          },
+          {
+            Name: "It's okay to not be okay",
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Jinxed at First',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.3,
+            WDWT: null,
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Juvenile justice',
+            Year: 2022,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 8.0,
+            WDWT: 'Good',
+            Genre: 'Law',
+          },
+          {
+            Name: 'Kill me heal me',
+            Year: 2015,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'King the land',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: 'Good',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Knight flower',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Historical',
+          },
+          {
+            Name: 'Law school',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: 'Good',
+            Genre: 'Law',
+          },
+          {
+            Name: "Let's eat",
+            Year: 2013,
+            S: 3.0,
+            E: 48.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Slice of life',
+          },
+          {
+            Name: 'Little women',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.8,
+            WDWT: 'Good',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Live',
+            Year: 2018,
+            S: 1.0,
+            E: 18.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Slice of life',
+          },
+          {
+            Name: "Lover's Red Sky",
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Historical',
+          },
+          {
+            Name: 'Love to hate you',
+            Year: 2023,
+            S: 1.0,
+            E: 10.0,
+            IMDB: 7.9,
+            WDWT: 'Good',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Lovely Runner',
+            Year: 2024,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.7,
+            WDWT: 'Loved',
+            Genre: 'Romance/Sci Fi',
+          },
+          {
+            Name: 'Mad for each other',
+            Year: 2021,
+            S: 1.0,
+            E: 13.0,
+            IMDB: 8.0,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Marry my husband',
+            Year: 2024,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.9,
+            WDWT: 'Good',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Mask girl',
+            Year: 2023,
+            S: 1.0,
+            E: 7.0,
+            IMDB: 7.3,
+            WDWT: 'Good',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Melancholia',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: 'Memorist',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.6,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Military Prosecutor Doberman',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Law',
+          },
+          {
+            Name: 'Missing: The Other Side',
+            Year: 2020,
+            S: 2.0,
+            E: 28.0,
+            IMDB: 7.9,
+            WDWT: null,
+            Genre: 'Mystery',
+          },
+          {
+            Name: 'Mouse',
+            Year: 2021,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.7,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Mr. Queen',
+            Year: 2020,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Historical/Comedy',
+          },
+          {
+            Name: 'Mr. Sunshine',
+            Year: 2018,
+            S: 1.0,
+            E: 24.0,
+            IMDB: 8.7,
+            WDWT: 'Loved',
+            Genre: 'Historical',
+          },
+          {
+            Name: 'Moving',
+            Year: 2023,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.4,
+            WDWT: 'Loved',
+            Genre: 'Sci Fi',
+          },
+          {
+            Name: 'My Demon',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'My dearest',
+            Year: 2023,
+            S: 1.0,
+            E: 21.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Historical',
+          },
+          {
+            Name: 'My liberation notes',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Slice of life',
+          },
+          {
+            Name: 'My Mister',
+            Year: 2018,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 9.1,
+            WDWT: 'Loved',
+            Genre: 'Drama',
+          },
+          {
+            Name: 'My Name',
+            Year: 2021,
+            S: 1.0,
+            E: 8.0,
+            IMDB: 7.8,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'My roommate is a gumiho',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'My Sweet Mobster',
+            Year: 2024,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.8,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Navillera',
+            Year: 2021,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.7,
+            WDWT: 'Loved',
+            Genre: 'Slice of life',
+          },
+          {
+            Name: 'Our Blues',
+            Year: 2022,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Slice of life',
+          },
+          {
+            Name: 'Our Unwritten Seoul',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: 'Parasite',
+            Year: 2019,
+            S: 1.0,
+            E: 1.0,
+            IMDB: 8.5,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Pinocchio',
+            Year: 2014,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.1,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Psychopath Diary',
+            Year: 2019,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: null,
+            Genre: 'Comedy/Thriller',
+          },
+          {
+            Name: 'Queen of Tears',
+            Year: 2024,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Reborn Rich',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Record of youth',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.2,
+            WDWT: null,
+            Genre: 'Youth',
+          },
+          {
+            Name: 'Reply 1988',
+            Year: 2015,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 9.2,
+            WDWT: 'Loved',
+            Genre: 'Slice of life',
+          },
+          {
+            Name: 'Resident Playbook',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Medical',
+          },
+          {
+            Name: 'Rookie Cops',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Youth',
+          },
+          {
+            Name: 'Run on',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Sand Castle',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: 'Save me',
+            Year: 2017,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Search: WWW',
+            Year: 2019,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.8,
+            WDWT: null,
+            Genre: 'Workplace',
+          },
+          {
+            Name: 'See you in my 19th life',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.5,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Sell your haunted house',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Shadow Detective',
+            Year: 2022,
+            S: 2.0,
+            E: 16.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Crime',
+          },
+          {
+            Name: 'Sh**ting Stars',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.6,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Signal',
+            Year: 2016,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.5,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Soundtrack #1',
+            Year: 2022,
+            S: 1.0,
+            E: 4.0,
+            IMDB: 7.8,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Squid Game',
+            Year: 2021,
+            S: 2.0,
+            E: 15.0,
+            IMDB: 8.0,
+            WDWT: 'Loved',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Start up',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: 'Good',
+            Genre: 'Workplace',
+          },
+          {
+            Name: 'Strong woman Do Bong soon',
+            Year: 2017,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.2,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Strong Woman Gang Nam Soon',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 6.3,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Study Group',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Action',
+          },
+          {
+            Name: 'Sweet Home',
+            Year: 2020,
+            S: 3.0,
+            E: 26.0,
+            IMDB: 7.3,
+            WDWT: 'Good',
+            Genre: 'Horror',
+          },
+          {
+            Name: 'Tale of the Nine Tailed',
+            Year: 2020,
+            S: 2.0,
+            E: 28.0,
+            IMDB: 7.9,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Taxi Driver',
+            Year: 2021,
+            S: 2.0,
+            E: 32.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Tell me that you love me',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'The Atypical Family',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 7.8,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'The Bequeathed',
+            Year: 2024,
+            S: 1.0,
+            E: 6.0,
+            IMDB: 6.0,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'The King: Eternal Monarch',
+            Year: 2020,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'The Legend of the Blue Sea',
+            Year: 2016,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'The Law Cafe',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'The Interest of Love',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.2,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'The Price of Confession',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'The Queen Who Crowns',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Historical',
+          },
+          {
+            Name: 'The Red Sleeve',
+            Year: 2021,
+            S: 1.0,
+            E: 17.0,
+            IMDB: 8.5,
+            WDWT: 'Loved',
+            Genre: 'Historical',
+          },
+          {
+            Name: 'The Trunk',
+            Year: 2024,
+            S: 1.0,
+            E: 8.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Drama',
+          },
+          {
+            Name: 'The Uncanny Counter',
+            Year: 2020,
+            S: 2.0,
+            E: 28.0,
+            IMDB: 7.7,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'The Worst of Evil',
+            Year: 2023,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.4,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Through the Darkness',
+            Year: 2022,
+            S: 1.0,
+            E: 12.0,
+            IMDB: 8.1,
+            WDWT: 'Good',
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Tomorrow',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.9,
+            WDWT: 'Good',
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'Trapped',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'Twenty-five Twenty-one',
+            Year: 2022,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.6,
+            WDWT: 'Loved',
+            Genre: 'Youth',
+          },
+          {
+            Name: 'Twinkling Watermelon',
+            Year: 2023,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 9.0,
+            WDWT: 'Loved',
+            Genre: 'Youth',
+          },
+          {
+            Name: 'Uncontrollably fond',
+            Year: 2016,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 7.7,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Vagabond',
+            Year: 2019,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.1,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Vincenzo',
+            Year: 2021,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 8.4,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Weak Hero Class 1',
+            Year: 2022,
+            S: 1.0,
+            E: 8.0,
+            IMDB: 8.5,
+            WDWT: 'Loved',
+            Genre: 'Action',
+          },
+          {
+            Name: 'Weightlifting fairy Kim Bok joo',
+            Year: 2016,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.3,
+            WDWT: 'Loved',
+            Genre: 'Romance',
+          },
+          {
+            Name: 'When life gives you tangerines',
+            Year: 2025,
+            S: 1.0,
+            E: null,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'When the Camellia Blooms',
+            Year: 2019,
+            S: 1.0,
+            E: 20.0,
+            IMDB: 7.9,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'When the Phone Rings',
+            Year: 2024,
+            S: 1.0,
+            E: 12.0,
+            IMDB: null,
+            WDWT: null,
+            Genre: 'Thriller',
+          },
+          {
+            Name: 'While you were sleeping',
+            Year: 2017,
+            S: 1.0,
+            E: 32.0,
+            IMDB: 8.2,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'Wok of love',
+            Year: 2018,
+            S: 1.0,
+            E: 38.0,
+            IMDB: 7.4,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+          {
+            Name: 'W: Two worlds apart',
+            Year: 2016,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 8.0,
+            WDWT: null,
+            Genre: 'Fantasy',
+          },
+          {
+            Name: 'You are my spring',
+            Year: 2021,
+            S: 1.0,
+            E: 16.0,
+            IMDB: 7.3,
+            WDWT: null,
+            Genre: 'Romance',
+          },
+        ],
+        Movies: [
+          {Name: 'The childe', Year: 2023, Genre: 'Action/Thriller', IMDB: 6.9},
+          {
+            Name: 'The point men',
+            Year: 2023,
+            Genre: 'Action/Thriller',
+            IMDB: 6.0,
+          },
+          {Name: 'Project Silence', Year: 2023, Genre: 'Disaster', IMDB: 6.2},
+          {Name: 'Concrete Utopia', Year: 2023, Genre: 'Disaster', IMDB: 7.5},
+          {Name: 'Kill Boksoon', Year: 2023, Genre: 'Action', IMDB: 6.6},
+          {Name: 'Believer 2', Year: 2023, Genre: 'Action', IMDB: 5.2},
+          {Name: 'Ballerina', Year: 2023, Genre: 'Action', IMDB: 6.2},
+          {Name: 'Target', Year: 2023, Genre: 'Thriller', IMDB: 6.2},
+          {Name: 'Smugglers', Year: 2023, Genre: 'Action', IMDB: 6.7},
+          {Name: 'Sleep', Year: 2023, Genre: 'Horror', IMDB: 6.6},
+          {Name: 'Phantom', Year: 2023, Genre: 'Action', IMDB: 6.1},
+          {
+            Name: 'Dr. Cheon and the Lost Talisman',
+            Year: 2023,
+            Genre: 'Fantasy',
+            IMDB: 6.2,
+          },
+          {Name: 'Cobweb', Year: 2023, Genre: 'Comedy', IMDB: 7.0},
+          {Name: 'Brave Citizen', Year: 2023, Genre: 'Action', IMDB: 6.4},
+          {Name: '12.12: The Day', Year: 2023, Genre: 'Historical', IMDB: 7.9},
+          {
+            Name: 'Alienoid: Return to the Future',
+            Year: 2024,
+            Genre: 'Sci Fi',
+            IMDB: 6.7,
+          },
+          {Name: 'Badland Hunters', Year: 2024, Genre: 'Action', IMDB: 6.0},
+          {Name: 'Citizens of a Kind', Year: 2024, Genre: 'Comedy', IMDB: 6.6},
+          {Name: 'Exhuma', Year: 2024, Genre: 'Horror', IMDB: 7.0},
+          {Name: 'My Name is Loh Kiwan', Year: 2024, Genre: 'Drama', IMDB: 6.7},
+          {Name: 'Officer Black Belt', Year: 2024, Genre: 'Action', IMDB: 6.5},
+          {Name: 'Escape', Year: 2024, Genre: 'Action', IMDB: 6.6},
+          {Name: 'Wonderland', Year: 2024, Genre: 'Sci Fi', IMDB: 5.6},
+          {Name: 'Uprising', Year: 2024, Genre: 'Historical', IMDB: 6.7},
+          {
+            Name: 'Hear Me: Our Summer',
+            Year: 2024,
+            Genre: 'Romance',
+            IMDB: 6.8,
+          },
+        ],
+        Docos: [
+          {Name: 'Beyond Utopia', Year: 2023, Genre: 'North Korea', IMDB: 8.0},
+          {
+            Name: 'Camp 24: Total Control Zone',
+            Year: 2012,
+            Genre: 'North Korea',
+            IMDB: 7.4,
+          },
+          {
+            Name: 'Cyber Hell: Exposing an Internet Horror',
+            Year: 2022,
+            Genre: 'Crime',
+            IMDB: 7.2,
+          },
+          {
+            Name: 'In the Name of God: A Holy Betrayal',
+            Year: 2023,
+            Genre: 'Crime',
+            IMDB: 7.7,
+          },
+          {
+            Name: 'Yellow Door: 90s Lo-fi Film Club',
+            Year: 2023,
+            Genre: 'Film',
+            IMDB: 6.9,
+          },
+          {Name: 'K-Pop Idols Unmasked', Year: 2024, Genre: 'Music', IMDB: 7.1},
+        ],
+        'English TV': [
+          {
+            Name: 'Waco',
+            Year: 2018,
+            S: 1.0,
+            E: 6.0,
+            IMDB: 7.9,
+            Genre: 'Drama',
+            Country: 'US',
+          },
+          {
+            Name: 'Bay of Fires',
+            Year: 2023,
+            S: 1.0,
+            E: 8.0,
+            IMDB: 6.5,
+            Genre: 'Crime/Comedy',
+            Country: 'NZ',
+          },
+          {
+            Name: 'The Bear',
+            Year: 2022,
+            S: 3.0,
+            E: 28.0,
+            IMDB: 8.6,
+            Genre: 'Drama',
+            Country: 'US',
+          },
+          {
+            Name: 'Succession',
+            Year: 2018,
+            S: 4.0,
+            E: 39.0,
+            IMDB: 8.9,
+            Genre: 'Drama',
+            Country: 'US',
+          },
+          {
+            Name: 'Severance',
+            Year: 2022,
+            S: 2.0,
+            E: 19.0,
+            IMDB: 8.7,
+            Genre: 'Sci Fi',
+            Country: 'US',
+          },
+        ],
+        Books: [
+          {
+            Name: 'FantasicLand: A novel',
+            Year: 2016,
+            Genre: 'Horror',
+            Author: 'Mike Bockoven',
+          },
+          {
+            Name: 'Demon Copperhead',
+            Year: 2022,
+            Genre: 'Coming of age',
+            Author: 'Barbara Kingsolver',
+          },
+          {
+            Name: 'Pachinko',
+            Year: 2017,
+            Genre: 'Historical Fiction',
+            Author: 'Min Jin Lee',
+          },
+          {
+            Name: 'The Vegetarian',
+            Year: 2007,
+            Genre: 'Literary Fiction',
+            Author: 'Han Kang',
+          },
+          {
+            Name: 'Human Acts',
+            Year: 2014,
+            Genre: 'Historical Fiction',
+            Author: 'Han Kang',
+          },
+        ],
+      };
+
+      // Merge custom added items stored in localStorage with default data
+      let customItems = JSON.parse(
+        localStorage.getItem('media_tracker_custom') || '{}',
+      );
+      let rawData = {};
+      for (let tab in defaultData) {
+        rawData[tab] = [...defaultData[tab], ...(customItems[tab] || [])];
+      }
+
+      let currentTab = Object.keys(rawData)[0];
+      let searchTerm = '';
+      let userState = JSON.parse(
+        localStorage.getItem('media_tracker_state') || '{}',
+      );
+
+      function saveState() {
+        localStorage.setItem('media_tracker_state', JSON.stringify(userState));
+        updateGlobalProgress();
+      }
+
+      function getKey(tab, itemName) {
+        return `${tab}___${itemName}`;
+      }
+
+      function updateGlobalProgress() {
+        let total = 0,
+          watched = 0,
+          downloaded = 0;
+        for (let tab in rawData) {
+          rawData[tab].forEach((item) => {
+            total++;
+            const key = getKey(tab, item.Name || item.Title);
+            if (userState[key]?.watched) watched++;
+            if (userState[key]?.downloaded) downloaded++;
+          });
+        }
+        const pct = total > 0 ? Math.round((watched / total) * 100) : 0;
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('progress-text').innerText = pct + '%';
+        document.getElementById('watched-count').innerText =
+          `${watched} Watched`;
+        document.getElementById('downloaded-count').innerText =
+          `${downloaded} Downloaded`;
+        document.getElementById('total-count').innerText = `${total} Total`;
+      }
+
+      function openAddModal() {
+        document.getElementById('add-modal').classList.remove('hidden');
+      }
+
+      function closeAddModal() {
+        document.getElementById('add-modal').classList.add('hidden');
+        document.getElementById('add-form').reset();
+      }
+
+      function handleAddItem(e) {
+        e.preventDefault();
+        const tab = document.getElementById('add-category').value;
+        const name = document.getElementById('add-name').value.trim();
+        const genre = document.getElementById('add-genre').value.trim();
+        const year = document.getElementById('add-year').value
+          ? Number(document.getElementById('add-year').value)
+          : null;
+        const imdb = document.getElementById('add-imdb').value
+          ? Number(document.getElementById('add-imdb').value)
+          : null;
+        const s = document.getElementById('add-seasons').value
+          ? Number(document.getElementById('add-seasons').value)
+          : null;
+        const ev = document.getElementById('add-episodes').value
+          ? Number(document.getElementById('add-episodes').value)
+          : null;
+        const author = document.getElementById('add-author').value.trim();
+
+        const newItem = {Name: name, Genre: genre, Year: year, IMDB: imdb};
+        if (s !== null) newItem.S = s;
+        if (ev !== null) newItem.E = ev;
+        if (author) newItem.Author = author;
+
+        if (!customItems[tab]) customItems[tab] = [];
+        customItems[tab].push(newItem);
+        localStorage.setItem(
+          'media_tracker_custom',
+          JSON.stringify(customItems),
+        );
+
+        if (!rawData[tab]) rawData[tab] = [];
+        rawData[tab].push(newItem);
+
+        closeAddModal();
+        currentTab = tab;
+        renderTabs();
+        renderContent();
+        updateGlobalProgress();
+      }
+
+      function exportData() {
+        const exportObj = {
+          customItems: customItems,
+          userState: userState,
+        };
+        const dataStr =
+          'data:text/json;charset=utf-8,' +
+          encodeURIComponent(JSON.stringify(exportObj, null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute('href', dataStr);
+        dlAnchorElem.setAttribute('download', 'watchlist_full_backup.json');
+        dlAnchorElem.click();
+      }
+
+      function importData(event) {
+        const fileReader = new FileReader();
+        if (event.target.files[0]) {
+          fileReader.readAsText(event.target.files[0], 'UTF-8');
+          fileReader.onload = (e) => {
+            try {
+              const parsed = JSON.parse(e.target.result);
+              if (parsed.customItems) {
+                customItems = parsed.customItems;
+                localStorage.setItem(
+                  'media_tracker_custom',
+                  JSON.stringify(customItems),
+                );
+              }
+              if (parsed.userState) {
+                userState = parsed.userState;
+                saveState();
+              } else if (!parsed.customItems) {
+                // legacy import support
+                userState = parsed;
+                saveState();
+              }
+              location.reload();
+            } catch (err) {
+              alert('Invalid backup file format.');
+            }
+          };
+        }
+      }
+
+      function renderTabs() {
+        const container = document.getElementById('tabs-container');
+        container.innerHTML = '';
+        Object.keys(rawData).forEach((tab) => {
+          const isActive = tab === currentTab;
+          const btn = document.createElement('button');
+          btn.className = `px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+            isActive
+              ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-500/25 scale-105'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+          }`;
+          let icon = 'fa-tv';
+          if (tab === 'Movies') icon = 'fa-clapperboard';
+          if (tab === 'Docos') icon = 'fa-video';
+          if (tab === 'English TV') icon = 'fa-globe';
+          if (tab === 'Books') icon = 'fa-book';
+
+          btn.innerHTML = `<i class="fa-solid ${icon}"></i> ${tab} (${rawData[tab].length})`;
+          btn.onclick = () => {
+            currentTab = tab;
+            renderTabs();
+            renderContent();
+          };
+          container.appendChild(btn);
+        });
+      }
+
+      function renderContent() {
+        const container = document.getElementById('content-area');
+        let items = rawData[currentTab] || [];
+
+        if (searchTerm.trim() !== '') {
+          const term = searchTerm.toLowerCase();
+          items = items.filter((i) => {
+            const name = (i.Name || i.Title || '').toLowerCase();
+            const genre = (i.Genre || '').toLowerCase();
+            const year = String(i.Year || '').toLowerCase();
+            return (
+              name.includes(term) || genre.includes(term) || year.includes(term)
+            );
+          });
+        }
+
+        if (items.length === 0) {
+          container.innerHTML = `<div class="glass-panel text-center py-16 rounded-2xl border border-slate-800 shadow-xl"><i class="fa-solid fa-face-sad-tear text-4xl text-slate-500 mb-3"></i><h3 class="text-lg font-bold text-slate-300">No media found</h3></div>`;
+          return;
+        }
+
+        const grouped = {};
+        items.forEach((item) => {
+          const genre = item.Genre || 'Uncategorized';
+          if (!grouped[genre]) grouped[genre] = [];
+          grouped[genre].push(item);
+        });
+
+        const sortedGenres = Object.keys(grouped).sort();
+        let html = '';
+
+        sortedGenres.forEach((genre) => {
+          const genreItems = grouped[genre].sort(
+            (a, b) => (a.Year || 0) - (b.Year || 0),
+          );
+          html += `<div class="mb-10"><div class="flex items-center gap-3 mb-4"><h3 class="text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400"><i class="fa-solid fa-hashtag text-xs text-pink-500 mr-1"></i>${genre}</h3><span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400">${genreItems.length} items</span></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">`;
+
+          genreItems.forEach((item) => {
+            const title = item.Name || item.Title || 'Untitled';
+            const key = getKey(currentTab, title);
+            const state = userState[key] || {watched: false, downloaded: false};
+
+            let badgeHTML = '';
+            if (item.Year)
+              badgeHTML += `<span class="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${item.Year}</span>`;
+            if (item.IMDB)
+              badgeHTML += `<span class="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 font-medium"><i class="fa-solid fa-star text-amber-400 mr-1"></i>${item.IMDB}</span>`;
+            if (item.S && item.E)
+              badgeHTML += `<span class="text-xs px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-medium">S${item.S} E${item.E}</span>`;
+            if (item.Author)
+              badgeHTML += `<span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium"><i class="fa-solid fa-feather mr-1"></i>${item.Author}</span>`;
+
+            html += `<div class="glass-panel p-4 rounded-2xl flex flex-col justify-between transition-all duration-300 hover:border-pink-500/50 hover:shadow-lg hover:shadow-pink-500/10 group"><div><div class="flex justify-between items-start gap-2 mb-2"><h4 class="font-bold text-slate-100 text-base leading-snug">${title}</h4></div><div class="flex flex-wrap gap-1.5 mb-4">${badgeHTML}</div></div><div class="pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs font-medium"><label class="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-pink-400 transition-colors"><input type="checkbox" class="rounded border-slate-700 bg-slate-900" ${state.watched ? 'checked' : ''} onchange="toggleState('${currentTab}', '${title.replace(/'/g, "\\'")}', 'watched', this.checked)"><span><i class="fa-solid fa-eye mr-1 text-pink-400"></i> Watched</span></label><label class="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-cyan-400 transition-colors"><input type="checkbox" class="rounded border-slate-700 bg-slate-900" ${state.downloaded ? 'checked' : ''} onchange="toggleState('${currentTab}', '${title.replace(/'/g, "\\'")}', 'downloaded', this.checked)"><span><i class="fa-solid fa-download mr-1 text-cyan-400"></i> Downloaded</span></label></div></div>`;
+          });
+          html += `</div></div>`;
+        });
+        container.innerHTML = html;
+      }
+
+      function toggleState(tab, name, field, value) {
+        const key = getKey(tab, name);
+        if (!userState[key])
+          userState[key] = {watched: false, downloaded: false};
+        userState[key][field] = value;
+        saveState();
+      }
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        renderContent();
+      });
+
+      window.onload = () => {
+        renderTabs();
+        renderContent();
+        updateGlobalProgress();
+      };
+    </script>
+  </body>
+</html>
