@@ -55,6 +55,14 @@ test('show text and inline handler arguments are safely escaped', () => {
   assert.ok(card.includes('<div hidden'));
 });
 
+test('text-valued year and rating cannot inject HTML', () => {
+  const f = fixture();
+  const card = f.run('renderShowCard({name:"Example",year:"<img src=x>",imdb:"<script>alert(1)</script>"})');
+  assert.ok(card.includes('&lt;img'));
+  assert.ok(card.includes('&lt;script'));
+  assert.ok(!card.includes('<script>'));
+});
+
 test('only a confirmed membership enables editing', async () => {
   const f = fixture();
   f.client.from = () => ({select: () => ({eq: () => ({maybeSingle: async () => ({data: {user_id: 'u'}, error: null})})})});
