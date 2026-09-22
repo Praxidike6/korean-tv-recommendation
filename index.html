@@ -10,6 +10,7 @@
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <style>
       @keyframes walkBackAndForth {
         0% {
@@ -17,11 +18,11 @@
           transform: scaleX(1);
         }
         49.9% {
-          left: calc(100% - 80px);
+          left: calc(100% - 90px);
           transform: scaleX(1);
         }
         50% {
-          left: calc(100% - 80px);
+          left: calc(100% - 90px);
           transform: scaleX(-1);
         }
         99.9% {
@@ -37,21 +38,21 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 75px;
+        width: 80px;
         height: auto;
         z-index: 9999;
         pointer-events: none;
-        animation: walkBackAndForth 14s linear infinite;
+        animation: walkBackAndForth 16s linear infinite;
       }
     </style>
   </head>
   <body
     class="bg-[#0B0F19] text-gray-100 min-h-screen font-sans antialiased"
     x-data="watchlistApp()">
-    <!-- Sophie Walking Animation -->
+    <!-- Animated Sophie Animation -->
     <img
-      src="Sophie Trans.png"
-      alt="Sophie the dog"
+      src="data:image/gif;base64,R0lGODlhDwAPAKEAAP///wAAAP8AAAAAIf/CFRhzdXJlUGFzc3BocmFzZQAsAAAAAA4ADwAAAk5SAEvi26O0yWpB0u4u0u5ubvA9RxeRhgWlZ6iV1aX2wzWqK5f5vfJ5xWfFIfEI4HDEg4kk5jB3n52m1+k0KqfV3jR37W79b7sEADs="
+      alt="Sophie walking"
       class="sophie-walker" />
 
     <!-- Top Header -->
