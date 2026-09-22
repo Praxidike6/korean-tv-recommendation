@@ -66,3 +66,18 @@ browser still displays editing buttons. Sign out/in refreshes the interface.
 Use `node --test tests/access.test.cjs` for local frontend access tests.
 Live database and email tests require the dashboard steps above; frontend tests
 alone do not prove the deployed database is protected.
+
+## Scheduled database health check
+
+`Supabase health check` runs every six hours on the default branch, at 04:17,
+10:17, 16:17 and 22:17 Brisbane time (GitHub may delay scheduled runs).
+It reads at most one show name using the existing `SUPABASE_URL` and
+`SUPABASE_PUBLISHABLE_KEY` repository variables. It does not modify data,
+use editor credentials, or log show contents. Failed requests fail the workflow.
+Run it manually through Actions → Supabase health check → Run workflow.
+
+This is best-effort activity, not a guarantee against Supabase Free plan pausing.
+GitHub disables scheduled workflows in public repositories after 60 days without
+repository activity. If disabled, re-enable this workflow in Actions. A paused
+Supabase project must be restored from its dashboard; this check cannot restore it.
+Check your GitHub Actions notification settings if you want failure emails.

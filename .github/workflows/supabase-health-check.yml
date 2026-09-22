@@ -1,0 +1,38 @@
+name: Supabase health check
+
+on:
+  schedule:
+    # UTC; 10:17, 16:17, 22:17 and 04:17 in Brisbane.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  database-read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify public database reads
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_URL:?Set the SUPABASE_URL repository variable}"
+          : "${SUPABASE_PUBLISHABLE_KEY:?Set the SUPABASE_PUBLISHABLE_KEY repository variable}"
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --retry 2 --retry-delay 5 --retry-max-time 100 \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --output "$response_file" \
+            "${SUPABASE_URL%/}/rest/v1/korean_shows?select=name&limit=1"
+
+          # An empty table is healthy too. Do not print database contents.
+          jq --exit-status 'type == "array"' "$response_file" > /dev/null
+          echo 'Supabase public database read succeeded.'
