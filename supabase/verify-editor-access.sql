@@ -15,7 +15,7 @@ DO $$ BEGIN
     RAISE EXCEPTION 'Excess table privileges';
   END IF;
 END $$;
-INSERT INTO public.korean_shows(name) VALUES (current_setting('test.show_name'));
+INSERT INTO public.korean_shows(name, year) VALUES (current_setting('test.show_name'), '2026');
 
 SET LOCAL ROLE anon;
 DO $$ BEGIN
@@ -36,7 +36,7 @@ DO $$ DECLARE affected integer; BEGIN
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 0 THEN RAISE EXCEPTION 'Unapproved delete succeeded'; END IF;
   BEGIN
-    INSERT INTO public.korean_shows(name) VALUES (current_setting('test.show_name') || '_denied');
+    INSERT INTO public.korean_shows(name, year) VALUES (current_setting('test.show_name') || '_denied', '2026');
     RAISE EXCEPTION 'Unapproved insert succeeded';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
@@ -54,7 +54,7 @@ DO $$ DECLARE affected integer; BEGIN
   UPDATE public.korean_shows SET watched=true WHERE name=current_setting('test.show_name');
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Approved update failed'; END IF;
-  INSERT INTO public.korean_shows(name) VALUES (current_setting('test.show_name') || '_allowed');
+  INSERT INTO public.korean_shows(name, year) VALUES (current_setting('test.show_name') || '_allowed', '2026');
   DELETE FROM public.korean_shows WHERE name=current_setting('test.show_name') || '_allowed';
   GET DIAGNOSTICS affected = ROW_COUNT;
   IF affected <> 1 THEN RAISE EXCEPTION 'Approved delete failed'; END IF;
