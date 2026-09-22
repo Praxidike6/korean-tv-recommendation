@@ -486,6 +486,7 @@
 
         return `
                 <div class="card-bg rounded-2xl p-4 flex flex-col justify-between hover:border-gray-700 transition relative group">
+                    ${canEdit ? `<button type="button" aria-label="Delete ${escapeHtml(show.name)}" title="Delete show" onclick='deleteShow(${escapedName})' class="absolute top-3 right-3 w-7 h-7 rounded-lg text-gray-500 hover:text-red-300 hover:bg-red-500/10 transition text-lg leading-none">×</button>` : ''}
                     <div>
                         <div class="flex justify-between items-start gap-2 mb-2">
                             <h3 class="font-bold text-white text-base tracking-tight leading-snug">${escapeHtml(show.name)}</h3>
@@ -514,8 +515,7 @@
                             </label>
                         </div>
                         <div ${canEdit ? '' : 'hidden'} class="flex items-center gap-2">
-                            <button onclick='openEditModal(${escapeHtml(JSON.stringify(show))})' class="text-gray-500 hover:text-purple-400 transition">Edit</button>
-                            <button onclick='deleteShow(${escapedName})' class="text-gray-500 hover:text-red-400 transition">Del</button>
+                            <button type="button" onclick='openEditModal(${escapeHtml(JSON.stringify(show))})' class="text-gray-500 hover:text-purple-400 transition">Edit</button>
                         </div>
                     </div>
                 </div>
