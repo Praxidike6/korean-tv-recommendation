@@ -54,7 +54,7 @@ async function signIn(event) {
       options: {shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname}
     });
     status.textContent = error
-      ? 'Could not send a link. Check your invitation and email address, or try again later.'
+      ? `Could not send a link: ${error.message || error.code || 'unknown error'}`
       : 'Check your email for a sign-in link. Only invited accounts can sign in.';
   } catch {
     status.textContent = 'Could not reach the sign-in service. Please try again.';
