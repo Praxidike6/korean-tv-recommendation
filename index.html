@@ -23,6 +23,12 @@
         background: linear-gradient(135deg, #161a29 0%, #10131d 100%);
         border: 1px solid #1e2536;
       }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid #a855f7;
+        outline-offset: 2px;
+      }
     </style>
   </head>
   <body class="bg-[#0b0e14] text-gray-100 min-h-screen font-sans">
@@ -147,7 +153,8 @@
             id="searchInput"
             placeholder="Search by title, genre, year..."
             oninput="renderApp()"
-            class="w-full card-bg rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 placeholder-gray-500 transition" />
+            aria-label="Search shows"
+            class="w-full card-bg rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/60 focus:border-purple-500 placeholder-gray-500 transition" />
         </div>
 
         <!-- Filter Pills & Hide Watched Toggle -->
@@ -215,14 +222,16 @@
     <!-- Add/Edit Modal -->
     <div
       id="showModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden z-50 px-4">
       <div
         class="card-bg rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-gray-800">
-        <h3
-          id="modalTitle"
-          class="text-lg font-bold text-white mb-4">
-          Add New Show
-        </h3>
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <h3 id="modalTitle" class="text-lg font-bold text-white">Add New Show</h3>
+          <button type="button" aria-label="Close dialog" onclick="closeModal()" class="w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 text-xl leading-none">×</button>
+        </div>
         <form
           id="showForm"
           onsubmit="handleFormSubmit(event)">
@@ -239,7 +248,7 @@
                 type="text"
                 id="formName"
                 required
-                class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
+              class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/60 focus:border-purple-500" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
@@ -309,7 +318,7 @@
                 class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
             </div>
           </div>
-          <div class="mt-6 flex justify-end gap-3">
+          <div class="mt-6 flex justify-end gap-3 sticky bottom-0 bg-[#12151e] pt-3">
             <button
               type="button"
               onclick="closeModal()"
@@ -585,6 +594,10 @@
       function closeModal() {
         document.getElementById('showModal').classList.add('hidden');
       }
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !document.getElementById('showModal').classList.contains('hidden')) closeModal();
+      });
 
       async function handleFormSubmit(event) {
         event.preventDefault();
