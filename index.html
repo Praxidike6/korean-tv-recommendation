@@ -512,9 +512,10 @@
           : '';
 
         const escapedName = escapeHtml(JSON.stringify(show.name));
+        const genreStyle = getGenreStyle(show.genre || 'Uncategorized');
 
         return `
-                <div class="card-bg rounded-2xl p-4 flex flex-col justify-between hover:border-gray-700 transition relative group">
+                <div class="card-bg rounded-2xl p-4 flex flex-col justify-between hover:border-gray-500 transition relative group" style="${genreStyle}">
                     <div>
                         <div class="flex justify-between items-start gap-2 mb-2">
                             <h3 class="font-bold text-white text-base tracking-tight leading-snug">${escapeHtml(show.name)}</h3>
@@ -549,6 +550,21 @@
                     </div>
                 </div>
             `;
+      }
+
+      function getGenreStyle(genre) {
+        const palettes = [
+          ['background-color:#171522', 'border-color:#463268'],
+          ['background-color:#111b24', 'border-color:#28516b'],
+          ['background-color:#1b1720', 'border-color:#5a304d'],
+          ['background-color:#171d1b', 'border-color:#2f5948'],
+          ['background-color:#1e1b16', 'border-color:#63502c'],
+          ['background-color:#171a22', 'border-color:#394b70'],
+        ];
+        let hash = 0;
+        for (const char of String(genre)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+        const [background, border] = palettes[hash % palettes.length];
+        return `${background};${border}`;
       }
 
       async function toggleField(name, fieldName, value) {
