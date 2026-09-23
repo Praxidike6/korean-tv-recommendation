@@ -595,9 +595,11 @@
         document.getElementById('showModal').classList.add('hidden');
       }
 
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !document.getElementById('showModal').classList.contains('hidden')) closeModal();
-      });
+      if (document.addEventListener) {
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !document.getElementById('showModal').classList.contains('hidden')) closeModal();
+        });
+      }
 
       async function handleFormSubmit(event) {
         event.preventDefault();
