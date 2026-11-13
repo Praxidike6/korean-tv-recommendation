@@ -107,6 +107,7 @@
         <button id="signOutButton" hidden onclick="signOut()" class="bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2.5 min-h-11 text-sm">Sign out</button>
       </section>
       <div id="toast" role="status" aria-live="polite" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-[60] rounded-lg bg-gray-900 border border-gray-700 px-4 py-3 text-sm text-white shadow-xl"></div>
+      <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6" role="tablist" aria-label="Media categories"></div>
 
       <!-- Download Requests Banner -->
       <div
@@ -204,6 +205,7 @@
               <option value="added-desc">Added newest</option>
               <option value="added-asc">Added oldest</option>
               <option value="imdb-desc">IMDb highest</option>
+              <option value="rating-desc">Your rating highest</option>
             </select>
           </label>
         </div>
@@ -260,6 +262,18 @@
                   type="number"
                   id="formYear"
                   class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Category</label>
+                <select id="formCategory" class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500">
+                  <option>TV Shows</option><option>Movies</option><option>Documentaries</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase mb-1">Your rating (1–10)</label>
+                <input type="number" id="formRating" min="1" max="10" class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -323,6 +337,9 @@
 
       let allShows = [];
       let currentStatusFilter = 'all';
+      let activeCategory = 'TV Shows';
+      const collapsedGenres = new Set();
+      const categories = ['TV Shows', 'Movies', 'Documentaries'];
 
       async function fetchShows() {
         document.getElementById('genresContainer').innerHTML = '<div class="text-center py-12 text-gray-500 text-sm">Loading watchlist from Supabase…</div>';
@@ -361,6 +378,7 @@
       }
 
       function renderApp() {
+        renderCategoryTabs();
         const query = document
           .getElementById('searchInput')
           .value.toLowerCase();
@@ -368,6 +386,7 @@
           document.getElementById('hideWatchedToggle').checked;
 
         const filtered = allShows.filter((show) => {
+          if ((show.category || 'TV Shows') !== activeCategory) return false;
           // Search filter query
           const nameMatch =
             show.name && show.name.toLowerCase().includes(query);
@@ -397,14 +416,14 @@
           if (sort === 'added-desc') return (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
           if (sort === 'added-asc') return (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
           if (sort === 'imdb-desc') return (Number(b.imdb) || 0) - (Number(a.imdb) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
+          if (sort === 'rating-desc') return (Number(b.personal_rating) || 0) - (Number(a.personal_rating) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
           return String(a.name || '').localeCompare(String(b.name || ''));
         });
 
-        const total = allShows.length;
-        const watchedCount = allShows.filter((s) => s.watched === true).length;
-        const downloadedCount = allShows.filter(
-          (s) => s.downloaded === true,
-        ).length;
+        const categoryShows = allShows.filter((s) => (s.category || 'TV Shows') === activeCategory);
+        const total = categoryShows.length;
+        const watchedCount = categoryShows.filter((s) => s.watched === true).length;
+        const downloadedCount = categoryShows.filter((s) => s.downloaded === true).length;
         const requestedShows = allShows.filter((s) => s.requested === true);
         const requestedCount = requestedShows.length;
 
@@ -458,17 +477,38 @@
             const showsInGenre = grouped[genre];
             return `
                     <div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <h2 class="text-lg font-bold text-white tracking-wide"># ${escapeHtml(genre)}</h2>
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-400 font-medium border border-gray-700">${showsInGenre.length} items</span>
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <button type="button" onclick='toggleGenre(${escapeHtml(JSON.stringify(genre))})' class="flex items-center gap-3 text-left" aria-expanded="${!collapsedGenres.has(genre)}">
+                              <span class="text-purple-300 text-sm">${collapsedGenres.has(genre) ? '▶' : '▼'}</span>
+                              <h2 class="text-lg font-bold text-white tracking-wide"># ${escapeHtml(genre)}</h2>
+                              <span class="text-xs px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-400 font-medium border border-gray-700">${showsInGenre.length} items</span>
+                            </button>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            ${showsInGenre.map((show) => renderShowCard(show)).join('')}
-                        </div>
+                        ${collapsedGenres.has(genre) ? '' : `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${showsInGenre.map((show) => renderShowCard(show)).join('')}</div>`}
                     </div>
                 `;
           })
           .join('');
+      }
+
+      function renderCategoryTabs() {
+        document.getElementById('categoryTabs').innerHTML = categories.map((category) => {
+          const count = allShows.filter((show) => (show.category || 'TV Shows') === category).length;
+          const active = category === activeCategory;
+          return `<button type="button" role="tab" aria-selected="${active}" onclick='setCategory(${escapeHtml(JSON.stringify(category))})' class="px-4 py-2.5 min-h-11 rounded-xl text-sm font-semibold transition ${active ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'}">${escapeHtml(category)} <span class="ml-1 text-xs opacity-75">${count}</span></button>`;
+        }).join('');
+      }
+
+      function setCategory(category) {
+        activeCategory = category;
+        collapsedGenres.clear();
+        renderApp();
+      }
+
+      function toggleGenre(genre) {
+        if (collapsedGenres.has(genre)) collapsedGenres.delete(genre);
+        else collapsedGenres.add(genre);
+        renderApp();
       }
 
       function renderShowCard(show) {
@@ -485,6 +525,8 @@
 
         const escapedName = escapeHtml(JSON.stringify(show.name));
         const genreStyle = getGenreStyle(show.genre || 'Uncategorized');
+        const rating = Number(show.personal_rating) || 0;
+        const ratingStars = Array.from({length: 10}, (_, index) => `<button type="button" aria-label="Rate ${index + 1} out of 10" ${canEdit ? '' : 'disabled'} onclick='toggleField(${escapedName}, "personal_rating", ${index + 1})' class="text-base ${index < rating ? 'text-yellow-300' : 'text-gray-600'} hover:text-yellow-200">★</button>`).join('');
 
         return `
                 <div class="card-bg rounded-2xl p-4 flex flex-col justify-between hover:border-gray-500 transition relative group" style="${genreStyle}">
@@ -501,6 +543,7 @@
                             ${yearBadge}
                             ${imdbBadge}
                         </div>
+                        <div class="flex items-center gap-0.5 mb-4" aria-label="Your rating: ${rating} out of 10">${ratingStars}</div>
                     </div>
 
                     <div class="pt-3 border-t border-gray-800/60 flex items-center justify-between text-xs">
@@ -540,7 +583,7 @@
 
       async function toggleField(name, fieldName, value) {
         if (!requireEditor()) return;
-        if (!['watched', 'downloaded', 'requested'].includes(fieldName)) return;
+        if (!['watched', 'downloaded', 'requested', 'personal_rating'].includes(fieldName)) return;
         const {data, error} = await supabaseClient
           .from('korean_shows')
           .update({[fieldName]: value})
@@ -570,6 +613,8 @@
         document.getElementById('originalName').value = show.name;
         document.getElementById('formName').value = show.name || '';
         document.getElementById('formYear').value = show.year || '';
+        document.getElementById('formCategory').value = show.category || 'TV Shows';
+        document.getElementById('formRating').value = show.personal_rating || '';
         document.getElementById('formImdb').value = show.imdb || '';
         document.getElementById('formGenre').value = show.genre || '';
         document.getElementById('formWdwt').value = show.wdwt || '';
@@ -608,6 +653,10 @@
           name: newName,
           year: document.getElementById('formYear').value
             ? parseInt(document.getElementById('formYear').value)
+            : null,
+          category: document.getElementById('formCategory').value,
+          personal_rating: document.getElementById('formRating').value
+            ? parseInt(document.getElementById('formRating').value)
             : null,
           imdb: document.getElementById('formImdb').value
             ? parseFloat(document.getElementById('formImdb').value)
