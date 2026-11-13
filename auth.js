@@ -32,8 +32,8 @@ async function updateAccess(session) {
     canEdit = !error && Boolean(data);
     status.textContent = error
       ? 'Unable to check editor access. Browsing remains available; try signing in again.'
-      : canEdit ? `Signed in as ${session.user.email} · Editor`
-        : `Signed in as ${session.user.email} · View only. Ask the owner for editor access.`;
+      : canEdit ? 'Signed in · Editor'
+        : 'Signed in · View only. Ask the owner for editor access.';
   } catch {
     if (revision !== authRevision) return;
     status.textContent = 'Unable to check editor access. Please try again.';
