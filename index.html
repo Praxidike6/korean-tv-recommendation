@@ -355,7 +355,7 @@
       function setTheme(theme) {
         const light = theme === 'light';
         document.body.classList.toggle('light-mode', light);
-        localStorage.setItem('watchlist-theme', light ? 'light' : 'dark');
+        if (typeof localStorage !== 'undefined') localStorage.setItem('watchlist-theme', light ? 'light' : 'dark');
         const button = document.getElementById('themeToggle');
         button.textContent = light ? '☾ Dark' : '☀ Light';
         button.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
@@ -736,7 +736,7 @@
         showToast.timer = setTimeout(() => toast.classList.add('hidden'), 2200);
       }
 
-      setTheme(localStorage.getItem('watchlist-theme') || 'dark');
+      setTheme(typeof localStorage === 'undefined' ? 'dark' : (localStorage.getItem('watchlist-theme') || 'dark'));
       fetchShows();
       initializeAuth().catch(() => {
         document.getElementById('authStatus').textContent = 'Sign-in unavailable. You can still browse the watchlist.';
