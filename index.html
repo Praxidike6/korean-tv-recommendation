@@ -108,18 +108,17 @@
             Add Show
           </button>
           <button id="themeToggle" type="button" onclick="toggleTheme()" aria-label="Switch to light mode" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium px-4 py-2.5 min-h-11 rounded-xl shadow transition text-sm">☀ Light</button>
+          <div class="card-bg rounded-xl px-3 py-2 flex items-center gap-2 flex-wrap max-w-full" aria-label="Editor sign-in">
+            <p id="authStatus" role="status" aria-live="polite" class="text-xs text-gray-300">Public · Sign in to edit</p>
+            <form id="signInForm" onsubmit="signIn(event)" class="flex items-center gap-2 flex-wrap">
+              <label for="signInEmail" class="sr-only">Email</label>
+              <input id="signInEmail" type="email" required autocomplete="email" placeholder="Invited email" class="w-36 sm:w-44 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-2 min-h-10 text-xs" />
+              <button id="signInButton" class="bg-purple-600 hover:bg-purple-500 rounded-lg px-3 py-2 min-h-10 text-xs">Sign in</button>
+            </form>
+            <button id="signOutButton" hidden onclick="signOut()" class="bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 min-h-10 text-xs">Sign out</button>
+          </div>
         </div>
       </div>
-
-      <section class="card-bg p-4 rounded-xl mb-6" aria-label="Editor sign-in">
-        <p id="authStatus" role="status" aria-live="polite" class="text-sm text-gray-300 mb-3">Public watchlist · Sign in to edit</p>
-        <form id="signInForm" onsubmit="signIn(event)" class="flex flex-wrap items-center gap-3">
-          <label for="signInEmail" class="text-sm">Email</label>
-          <input id="signInEmail" type="email" required autocomplete="email" placeholder="Your invited email address" class="w-full sm:w-auto sm:min-w-64 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 min-h-11 text-sm" />
-          <button id="signInButton" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-500 rounded-lg px-4 py-2.5 min-h-11 text-sm">Email me a sign-in link</button>
-        </form>
-        <button id="signOutButton" hidden onclick="signOut()" class="bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2.5 min-h-11 text-sm">Sign out</button>
-      </section>
       <div id="toast" role="status" aria-live="polite" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-[60] rounded-lg bg-gray-900 border border-gray-700 px-4 py-3 text-sm text-white shadow-xl"></div>
       <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6" role="tablist" aria-label="Media categories"></div>
 
