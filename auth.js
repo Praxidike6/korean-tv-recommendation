@@ -22,6 +22,7 @@ async function updateAccess(session) {
   document.getElementById('signInForm').hidden = Boolean(session);
   document.getElementById('signOutButton').hidden = !session;
   const status = document.getElementById('authStatus');
+  status.hidden = Boolean(session);
   status.textContent = session ? 'Checking editor access…' : 'Public watchlist · Sign in to edit';
   renderApp();
   if (!session) return;
