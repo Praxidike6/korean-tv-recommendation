@@ -24,7 +24,7 @@
         border: 1px solid #1e2536;
       }
       body.light-mode { background-color: #f3f4f6 !important; color: #111827 !important; }
-      body.light-mode .card-bg { background-color: #ffffff !important; }
+      body.light-mode .card-bg { background-color: var(--genre-light-bg, #ffffff) !important; border-color: var(--genre-light-border, #d1d5db) !important; }
       body.light-mode .banner-bg { background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%); border-color: #d1d5db; }
       body.light-mode .text-white { color: #111827 !important; }
       body.light-mode .text-gray-100, body.light-mode .text-gray-200, body.light-mode .text-gray-300 { color: #374151 !important; }
@@ -33,6 +33,9 @@
       body.light-mode .border-gray-700, body.light-mode .border-gray-800 { border-color: #d1d5db !important; }
       body.light-mode #showModal { background-color: rgba(17, 24, 39, 0.55); }
       body.light-mode .bg-purple-600 .text-white, body.light-mode .bg-purple-600.text-white, body.light-mode button.bg-purple-600 { color: #ffffff !important; }
+      body.light-mode .bg-purple-600 { background-color: #9bc400 !important; }
+      body.light-mode .hover\:bg-purple-500:hover { background-color: #b0d633 !important; }
+      body.light-mode .text-purple-400, body.light-mode .text-purple-300 { color: #6f8d00 !important; }
       button:focus-visible,
       input:focus-visible,
       select:focus-visible {
@@ -594,17 +597,17 @@
 
       function getGenreStyle(genre) {
         const palettes = [
-          ['background-color:#211936', 'border-color:#7446a8'],
-          ['background-color:#12283a', 'border-color:#3c82a8'],
-          ['background-color:#291728', 'border-color:#8c3f69'],
-          ['background-color:#172a22', 'border-color:#43835d'],
-          ['background-color:#2c2415', 'border-color:#9a7737'],
-          ['background-color:#19233a', 'border-color:#526fa8'],
+          ['#211936', '#7446a8', '#f3f8df', '#b7cf5b'],
+          ['#12283a', '#3c82a8', '#e8f4fa', '#8fc1d8'],
+          ['#291728', '#8c3f69', '#f8eaf2', '#d28ab0'],
+          ['#172a22', '#43835d', '#e8f5ec', '#8fc6a2'],
+          ['#2c2415', '#9a7737', '#fbf4df', '#d6bb70'],
+          ['#19233a', '#526fa8', '#e9eefb', '#9aaed8'],
         ];
         let hash = 0;
         for (const char of String(genre)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-        const [background, border] = palettes[hash % palettes.length];
-        return `${background};${border}`;
+        const [darkBackground, darkBorder, lightBackground, lightBorder] = palettes[hash % palettes.length];
+        return `--genre-dark-bg:${darkBackground};--genre-dark-border:${darkBorder};--genre-light-bg:${lightBackground};--genre-light-border:${lightBorder};background-color:${darkBackground};border-color:${darkBorder}`;
       }
 
       async function toggleField(name, fieldName, value) {
