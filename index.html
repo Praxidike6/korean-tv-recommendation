@@ -201,8 +201,8 @@
             <select id="sortSelect" onchange="renderApp()" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 min-h-11 text-sm text-gray-200">
               <option value="name-asc">Name A–Z</option>
               <option value="name-desc">Name Z–A</option>
-              <option value="year-desc">Year newest</option>
-              <option value="year-asc">Year oldest</option>
+              <option value="added-desc">Added newest</option>
+              <option value="added-asc">Added oldest</option>
               <option value="imdb-desc">IMDb highest</option>
             </select>
           </label>
@@ -250,7 +250,7 @@
                 required
               class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/60 focus:border-purple-500" />
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
               <div>
                 <label
                   class="block text-xs font-semibold text-gray-400 uppercase mb-1">
@@ -259,27 +259,6 @@
                 <input
                   type="number"
                   id="formYear"
-                  class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
-              </div>
-              <div>
-                <label
-                  class="block text-xs font-semibold text-gray-400 uppercase mb-1">
-                  Season (S)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  id="formS"
-                  class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
-              </div>
-              <div>
-                <label
-                  class="block text-xs font-semibold text-gray-400 uppercase mb-1">
-                  Episode (E)
-                </label>
-                <input
-                  type="number"
-                  id="formE"
                   class="w-full bg-[#0b0e14] border border-gray-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500" />
               </div>
             </div>
@@ -415,8 +394,8 @@
         const sort = document.getElementById('sortSelect').value;
         filtered.sort((a, b) => {
           if (sort === 'name-desc') return String(b.name || '').localeCompare(String(a.name || ''));
-          if (sort === 'year-desc') return (Number(b.year) || 0) - (Number(a.year) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
-          if (sort === 'year-asc') return (Number(a.year) || 0) - (Number(b.year) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
+          if (sort === 'added-desc') return (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
+          if (sort === 'added-asc') return (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
           if (sort === 'imdb-desc') return (Number(b.imdb) || 0) - (Number(a.imdb) || 0) || String(a.name || '').localeCompare(String(b.name || ''));
           return String(a.name || '').localeCompare(String(b.name || ''));
         });
@@ -497,13 +476,6 @@
         const isDownloaded = show.downloaded === true;
         const isRequested = show.requested === true;
 
-        const seasonText = show.season ? `S${escapeHtml(show.season)}` : '';
-        const epText = show.episode ? `E${escapeHtml(show.episode)}` : '';
-        const seBadge =
-          seasonText || epText
-            ? `<span class="bg-[#1e2536] text-purple-300 px-2 py-0.5 rounded text-[11px] font-semibold">${seasonText} ${epText}`.trim() +
-              `</span>`
-            : '';
         const imdbBadge = show.imdb
           ? `<span class="text-yellow-400 font-medium flex items-center gap-1 text-xs">★ ${escapeHtml(show.imdb)}</span>`
           : '';
@@ -528,7 +500,6 @@
                         <div class="flex items-center gap-3 flex-wrap mb-4">
                             ${yearBadge}
                             ${imdbBadge}
-                            ${seBadge}
                         </div>
                     </div>
 
@@ -599,8 +570,6 @@
         document.getElementById('originalName').value = show.name;
         document.getElementById('formName').value = show.name || '';
         document.getElementById('formYear').value = show.year || '';
-        document.getElementById('formS').value = show.season || '';
-        document.getElementById('formE').value = show.episode || '';
         document.getElementById('formImdb').value = show.imdb || '';
         document.getElementById('formGenre').value = show.genre || '';
         document.getElementById('formWdwt').value = show.wdwt || '';
@@ -639,12 +608,6 @@
           name: newName,
           year: document.getElementById('formYear').value
             ? parseInt(document.getElementById('formYear').value)
-            : null,
-          season: document.getElementById('formS').value
-            ? parseFloat(document.getElementById('formS').value)
-            : null,
-          episode: document.getElementById('formE').value
-            ? parseInt(document.getElementById('formE').value)
             : null,
           imdb: document.getElementById('formImdb').value
             ? parseFloat(document.getElementById('formImdb').value)
