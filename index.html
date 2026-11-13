@@ -354,11 +354,13 @@
 
       function setTheme(theme) {
         const light = theme === 'light';
-        document.body.classList.toggle('light-mode', light);
+        if (document.body?.classList) document.body.classList.toggle('light-mode', light);
         if (typeof localStorage !== 'undefined') localStorage.setItem('watchlist-theme', light ? 'light' : 'dark');
         const button = document.getElementById('themeToggle');
-        button.textContent = light ? '☾ Dark' : '☀ Light';
-        button.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
+        if (button) {
+          button.textContent = light ? '☾ Dark' : '☀ Light';
+          button.setAttribute('aria-label', light ? 'Switch to dark mode' : 'Switch to light mode');
+        }
       }
 
       function toggleTheme() {
